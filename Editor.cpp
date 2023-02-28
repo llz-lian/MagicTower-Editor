@@ -41,11 +41,14 @@ void Editor::run()
 
         // draw the map
         window.clear();
-        window.draw(__choose_map);
-        for (auto&& game_map : __game_map)
-        {
-            window.draw(game_map);
-        }
+        //window.draw(__choose_map);
+        //for (auto&& game_map : __game_map)
+        //{
+        //    window.draw(game_map);
+        //}
+
+        drawAllMap();
+
         window.display();
     }
 }
@@ -61,12 +64,14 @@ void Editor::ChooseMap2Next(int plus)
     int texture_index = is_background ? __now_choose : __now_choose - background_texture_num;
 
 
-    __choose_map.init(&__loaded_textures, is_background);
-    __choose_map.setTexture(tile_size, texture_index);
+    __choose_map.is_background = is_background;
+    auto && texture_detail = __loaded_textures.getTexturesDetail(is_background, texture_index);
+    __choose_map.init(&__loaded_textures, texture_index, {texture_detail.back_texture_index_x,texture_detail.back_texture_index_y});
+    /*__choose_map.setTexture(tile_size, texture_index);
     __choose_map.setTileGrid(__choose_map_tiles,
         { __choose_map.getTextureDetail(texture_index).back_texture_index_x,__choose_map.getTextureDetail(texture_index).back_texture_index_y },
         texture_index
-    );
+    );*/
     __now_choose_grid = nullptr;
 }
 

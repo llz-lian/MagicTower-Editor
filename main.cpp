@@ -31,7 +31,15 @@ LONG WINAPI ApplicationCrashHandler(EXCEPTION_POINTERS* pException)
 
 int main()
 {
-    Editor* edit = new Editor(sf::Vector2u(32, 32), "assets");
+    //sf::Vector2u tile_size, std::string asset_dir, float choose_scale,float game_show_scale,int * __choose_map_tiles
+    int choose_map_tiles[max_length];
+    for (int i = 0; i < max_length; i++)
+    {
+        choose_map_tiles[i] = i;
+    }
+
+
+    Editor* edit = new Editor(sf::Vector2u(32, 32), "assets",0.7f,1.0f,choose_map_tiles);
     edit->run();
     return 0;
 }
