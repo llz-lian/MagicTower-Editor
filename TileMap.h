@@ -41,11 +41,52 @@ public:
 		quad = nullptr;
 		tile_pos_in_texutre.x = tile_pos_in_texutre.y = -1;
 	};
-	void setTile(const Tile& tile)
+	void setFromTile(const Tile& tile)
 	{
 		use_texture = tile.use_texture;
 		quad = tile.quad;
 		tile_pos_in_texutre = tile.tile_pos_in_texutre;
+	}
+	void setTileTexturePosition(const int pos_in_texture,const MyTexture & target_texture)
+	{
+		int texture_index_top_left_x = pos_in_texture % target_texture.detail.back_texture_index_x;
+		int texture_index_top_left_y = pos_in_texture / target_texture.detail.back_texture_index_x;
+		setTileTexturePosition(texture_index_top_left_x, texture_index_top_left_y, target_texture);
+	}
+	void setTileTexturePosition(const sf::Vector2f& pos, const MyTexture& target_texture)
+	{
+		unsigned int top_left_texture_pos_x = pos.x;
+		unsigned int top_left_texture_pos_y = pos.y;
+		tile_pos_in_texutre = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
+		use_texture = &target_texture;
+		setQuadtexCoords(top_left_texture_pos_x, top_left_texture_pos_y, target_texture);
+	}
+	void setTileTexturePosition(const int texture_index_top_left_x,const int texture_index_top_left_y, const MyTexture& target_texture)
+	{
+		//pos in tileset
+		unsigned int top_left_texture_pos_x = texture_index_top_left_x * target_texture.detail.tile_size.x;
+		unsigned int top_left_texture_pos_y = texture_index_top_left_y * target_texture.detail.tile_size.y;
+
+		tile_pos_in_texutre = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
+		use_texture = &target_texture;
+		setQuadtexCoords(top_left_texture_pos_x, top_left_texture_pos_y, target_texture);
+	}
+
+
+
+	void setQuadtexCoords(unsigned int pos_top_left_x, unsigned int pos_top_left_y, const MyTexture& target_texture)
+	{
+		quad[0].texCoords = sf::Vector2f(pos_top_left_x, pos_top_left_y);
+		quad[1].texCoords = sf::Vector2f(pos_top_left_x + target_texture.detail.tile_size.x, pos_top_left_y);
+		quad[3].texCoords = sf::Vector2f(pos_top_left_x, pos_top_left_y + target_texture.detail.tile_size.y);
+		quad[2].texCoords = sf::Vector2f(pos_top_left_x + target_texture.detail.tile_size.x, pos_top_left_y + target_texture.detail.tile_size.y);
+	}
+	void setQuadPosition(unsigned int pos_top_left_x, unsigned int pos_top_left_y, const MyTexture& target_texture)
+	{
+		quad[0].position = sf::Vector2f(pos_top_left_x, pos_top_left_y);
+		quad[1].position = sf::Vector2f(pos_top_left_x + target_texture.detail.tile_size.x, pos_top_left_y);
+		quad[3].position = sf::Vector2f(pos_top_left_x, pos_top_left_y + target_texture.detail.tile_size.y);
+		quad[2].position = sf::Vector2f(pos_top_left_x + target_texture.detail.tile_size.x, pos_top_left_y + target_texture.detail.tile_size.y);
 	}
 	Tile&& operator= (const Tile& tile)
 	{
@@ -148,20 +189,15 @@ public:
 		std::cout << (is_background ? "background " : "foreground ") << "textures loaded\n";
 		return true;
 	}
-
 	MyTexture::Detail getTexturesDetail(bool is_background,int texture_index)
 	{
 		return is_background ? __background_textures[texture_index].detail : __foreground_textures[texture_index].detail;
 	}
-
-
 	friend TileMap;
 private:
 	MyTexture* __background_textures;
 	MyTexture* __foreground_textures;
 };
-
-
 
 class TileMap :
 	public sf::Drawable, public sf::Transformable
@@ -178,45 +214,6 @@ public:
 		//__loaded_textures = loaded_textuers;
 		__textures = is_background ? loaded_textuers->__background_textures : loaded_textuers->__foreground_textures;
 		__textures_index = texture_index;
-	}
-	void setTilePosition(Tile& tile, float pos_top_left_x, float pos_top_left_y)
-	{
-		auto& quad = tile.quad;
-		quad[0].position = sf::Vector2f(pos_top_left_x, pos_top_left_y);
-		quad[1].position = sf::Vector2f(pos_top_left_x + __textures[__textures_index].detail.tile_size.x, pos_top_left_y);
-		quad[3].position = sf::Vector2f(pos_top_left_x, pos_top_left_y + __textures[__textures_index].detail.tile_size.y);
-		quad[2].position = sf::Vector2f(pos_top_left_x + __textures[__textures_index].detail.tile_size.x, pos_top_left_y + __textures[__textures_index].detail.tile_size.y);
-	}
-	void setTileTexturePosition(Tile& tile, int pos_in_texture)
-	{
-
-		auto& quad = tile.quad;
-		int texture_index_top_left_x = pos_in_texture % __textures[__textures_index].detail.back_texture_index_x;
-		int texture_index_top_left_y = pos_in_texture / __textures[__textures_index].detail.back_texture_index_x;
-
-		//pos in tileset
-		unsigned int top_left_texture_pos_x = texture_index_top_left_x * __textures[__textures_index].detail.tile_size.x;
-		unsigned int top_left_texture_pos_y = texture_index_top_left_y * __textures[__textures_index].detail.tile_size.y;
-
-		tile.tile_pos_in_texutre = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
-
-		quad[0].texCoords = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
-		quad[1].texCoords = sf::Vector2f(top_left_texture_pos_x + __textures[__textures_index].detail.tile_size.x, top_left_texture_pos_y);
-		quad[3].texCoords = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y + __textures[__textures_index].detail.tile_size.y);
-		quad[2].texCoords = sf::Vector2f(top_left_texture_pos_x + __textures[__textures_index].detail.tile_size.x, top_left_texture_pos_y + __textures[__textures_index].detail.tile_size.y);
-	}
-	void setTileTexturePosition(Tile& tile, sf::Vector2f& pos)
-	{
-		auto& quad = tile.quad;
-		unsigned int top_left_texture_pos_x = pos.x;
-		unsigned int top_left_texture_pos_y = pos.y;
-		tile.tile_pos_in_texutre = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
-		tile.use_texture = &__textures[__textures_index];
-
-		quad[0].texCoords = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y);
-		quad[1].texCoords = sf::Vector2f(top_left_texture_pos_x + __textures[__textures_index].detail.tile_size.x, top_left_texture_pos_y);
-		quad[3].texCoords = sf::Vector2f(top_left_texture_pos_x, top_left_texture_pos_y + __textures[__textures_index].detail.tile_size.y);
-		quad[2].texCoords = sf::Vector2f(top_left_texture_pos_x + __textures[__textures_index].detail.tile_size.x, top_left_texture_pos_y + __textures[__textures_index].detail.tile_size.y);
 	}
 
 	bool setTileGrid(const int* tiles, std::pair<size_t, size_t> grid_size)
@@ -251,14 +248,14 @@ public:
 				// 3  2
 				float pos_top_left_x = i * __textures[__textures_index].detail.tile_size.x + bias_x;
 				float pos_top_left_y = j * __textures[__textures_index].detail.tile_size.y + bias_y;
-				setTilePosition(tile, pos_top_left_x, pos_top_left_y);
+				tile.setQuadPosition( pos_top_left_x, pos_top_left_y, __textures[__textures_index]);
 
 				//index in tileset
 				int texture_index = tiles[j * width + i];//0,1,2,3
 				//tile.tile_pos_in_texutre;
-				setTileTexturePosition(tile, texture_index);
-
-				grid_tile.setTile(tile);
+				tile.setTileTexturePosition(texture_index, __textures[__textures_index]);
+				//setTileTexturePosition(tile, texture_index);
+				grid_tile.setFromTile(tile);
 			}
 		}
 		return true;
@@ -270,7 +267,7 @@ public:
 	}
 	void changeTexCoords(int pos_in_texture, int tile_x, int tile_y)
 	{
-		setTileTexturePosition(__grid.grid[tile_x][tile_y].tile, pos_in_texture);
+		__grid.grid[tile_x][tile_y].tile.setTileTexturePosition(pos_in_texture, __textures[__textures_index]);
 	}
 
 	float bias_x = 0.f;
@@ -310,26 +307,27 @@ private:
 	//LoadedTextures* __loaded_textures;
 };
 
-
+#include"Json.h"
 
 class ShowMap
 {
 public:
-	ShowMap(float show_scale,int * map_tiles , bool is_background,float bias_x,float bias_y)
-		:show_scale(show_scale), is_background(is_background),__map(bias_x,bias_y){
-		__map_tiles = map_tiles;
+	ShowMap(float show_scale, std::vector<int> & map_tiles , bool is_background,float bias_x,float bias_y)
+		:show_scale(show_scale), is_background(is_background),__map(bias_x,bias_y), __map_tiles(map_tiles)
+	{
+
 	};
 	void init(LoadedTextures * textures,int textures_index, std::pair<size_t, size_t> grid_size)
 	{
 		__map.init(textures,is_background, textures_index);
-		__map.setTileGrid(__map_tiles, grid_size);
+		__map.setTileGrid(__map_tiles.data(), grid_size);
 		__map.setScale(show_scale, show_scale);
+		this->grid_size = grid_size;
 	};
 
 	~ShowMap() {};
 	float show_scale = 1.0f;
 	bool is_background = true;
-
 
 	//std::pair<size_t, size_t> grid_size{map_x,map_y};
 
@@ -362,26 +360,39 @@ public:
 		return !(x <= choosemap_top_left_x || y <= choosemap_top_left_y || x >= choosemap_right_buttom_x || y >= choosemap_right_buttom_y);
 	};
 
-	auto & getGridCell(int x,int y)
-	{
-		return __map.getGridCell(x,y);
-	}
 
-	void setTileTexturePosition(Tile& tile, sf::Vector2f& pos)
-	{
-		__map.setTileTexturePosition(tile, pos);
-	}
-	void setTileTexturePosition(Tile& tile, int pos_in_texture)
-	{
-		__map.setTileTexturePosition(tile, pos_in_texture);
-	}
 	void drawMap(sf::RenderWindow  & window)
 	{
 		window.draw(__map);
 	}
+
+	void changeGridCellTile(int cell_index_x, int cell_index_y, const GridCell& target)
+	{
+		auto& src_cell = __map.getGridCell(cell_index_x, cell_index_y);
+		const MyTexture& target_texture = *target.tile.use_texture;
+		src_cell.tile.setTileTexturePosition(target.tile.tile_pos_in_texutre, target_texture);
+		__map_tiles[cell_index_x + cell_index_y * grid_size.first] = target.tile_index_in_map.x + target.tile_index_in_map.y * target.tile.use_texture->detail.back_texture_index_x;	
+	}
+	GridCell & getGridCell(int x, int y)
+	{
+		return __map.getGridCell(x, y);
+	}
+
 private:
-	int * __map_tiles;
+	std::vector<int> & __map_tiles;
 	TileMap __map;
+	std::pair<size_t, size_t> grid_size;
+	void showMaptiles()
+	{
+		for (int i = 0; i < grid_size.first; i++)
+		{
+			for (int j = 0; j < grid_size.second; j++)
+			{
+				std::cout << __map_tiles[j + i * grid_size.second]<<",";
+			}
+			std::cout << std::endl;
+		}
+	}
 };
 
 

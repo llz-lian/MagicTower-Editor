@@ -21,7 +21,7 @@ struct ItemDetail
 class Editor
 {
 public:
-	Editor(sf::Vector2u tile_size, std::string asset_dir, float choose_scale,float game_show_scale,int * __choose_map_tiles)
+	Editor(sf::Vector2u tile_size, std::string asset_dir, float choose_scale,float game_show_scale, std::vector<int> & __choose_map_tiles)
 		:tile_size(tile_size),__loaded_textures(tile_size), __choose_map_tiles(__choose_map_tiles),__game_map(game_show_scale),
 		__choose_map(choose_scale, __choose_map_tiles, true,0,0),
 		
@@ -75,11 +75,8 @@ public:
 				auto [index_x, index_y] = __game_map.__game_map[0].getMapIndex(pos.x, pos.y);
 				if (__now_choose_grid != nullptr)
 				{
-					bool is_background = __now_choose_grid->tile.use_texture->detail.is_background;
-
-					__game_map.changeTileTexture(is_background, index_x, index_y,
-						__now_choose_grid->tile.tile_pos_in_texutre, __now_choose_grid->tile.use_texture->detail.texture_id);
-					
+					__game_map.changeTileTexture(index_x, index_y, *__now_choose_grid);
+					__game_map.saveGameMap();
 				}
 				
 			}
@@ -115,7 +112,7 @@ private:
 	std::vector<std::string> __assets_foreground_paths;
 
 	sf::RenderWindow window;
-	int * __choose_map_tiles;
+	std::vector<int> __choose_map_tiles;
 };
 
 
